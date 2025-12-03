@@ -15,13 +15,14 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState('home');
   const [dotPosition, setDotPosition] = useState(50);
   const [dotDirection, setDotDirection] = useState(1);
+  const [isLeftChannel, setIsLeftChannel] = useState(true);
   const [sessionHistory, setSessionHistory] = useState<Array<{ date: string; duration: number; bpm: number }>>([]);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const sessionTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const playSound = (type: SoundType) => {
+  const playSound = (type: SoundType, isLeft: boolean) => {
     if (!audioContextRef.current) {
       audioContextRef.current = new AudioContext();
     }
@@ -29,9 +30,13 @@ const Index = () => {
     const ctx = audioContextRef.current;
     const oscillator = ctx.createOscillator();
     const gainNode = ctx.createGain();
+    const panner = ctx.createStereoPanner();
 
     oscillator.connect(gainNode);
-    gainNode.connect(ctx.destination);
+    gainNode.connect(panner);
+    panner.connect(ctx.destination);
+
+    panner.pan.value = isLeft ? -1 : 1;
 
     switch (type) {
       case 'click':
@@ -59,6 +64,35 @@ const Index = () => {
     }
   };
 
+  const startAnimation = (speed: number) => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    
+    const interval = 60000 / speed;
+    let currentDirection = 1;
+    
+    intervalRef.current = setInterval(() => {
+      setDotPosition(prev => {
+        const newPos = prev + currentDirection * 2;
+        if (newPos >= 100) {
+          currentDirection = -1;
+          setIsLeftChannel(left => {
+            playSound(soundType, !left);
+            return !left;
+          });
+          return 100;
+        } else if (newPos <= 0) {
+          currentDirection = 1;
+          setIsLeftChannel(left => {
+            playSound(soundType, !left);
+            return !left;
+          });
+          return 0;
+        }
+        return newPos;
+      });
+    }, interval / 50);
+  };
+
   const togglePlayPause = () => {
     if (isPlaying) {
       if (intervalRef.current) clearInterval(intervalRef.current);
@@ -77,24 +111,7 @@ const Index = () => {
       setDotPosition(50);
       setDotDirection(1);
     } else {
-      const interval = 60000 / bpm;
-      let currentDirection = 1;
-      
-      intervalRef.current = setInterval(() => {
-        setDotPosition(prev => {
-          const newPos = prev + currentDirection * 2;
-          if (newPos >= 100) {
-            currentDirection = -1;
-            playSound(soundType);
-            return 100;
-          } else if (newPos <= 0) {
-            currentDirection = 1;
-            playSound(soundType);
-            return 0;
-          }
-          return newPos;
-        });
-      }, interval / 50);
+      startAnimation(bpm);
 
       sessionTimerRef.current = setInterval(() => {
         setSessionDuration(prev => prev + 1);
@@ -104,6 +121,12 @@ const Index = () => {
     }
     setIsPlaying(!isPlaying);
   };
+
+  useEffect(() => {
+    if (isPlaying) {
+      startAnimation(bpm);
+    }
+  }, [bpm]);
 
   useEffect(() => {
     return () => {
@@ -257,7 +280,6 @@ const Index = () => {
                     min={60}
                     max={200}
                     step={5}
-                    disabled={isPlaying}
                     className="mb-4"
                   />
                 </div>
@@ -276,7 +298,7 @@ const Index = () => {
                 <button
                   onClick={() => {
                     setSoundType('click');
-                    playSound('click');
+                    playSound('click', true);
                   }}
                   className={`w-full p-4 rounded-lg border-2 transition-all ${
                     soundType === 'click'
@@ -299,7 +321,7 @@ const Index = () => {
                 <button
                   onClick={() => {
                     setSoundType('pulse');
-                    playSound('pulse');
+                    playSound('pulse', true);
                   }}
                   className={`w-full p-4 rounded-lg border-2 transition-all ${
                     soundType === 'pulse'
@@ -322,7 +344,7 @@ const Index = () => {
                 <button
                   onClick={() => {
                     setSoundType('clap');
-                    playSound('clap');
+                    playSound('clap', true);
                   }}
                   className={`w-full p-4 rounded-lg border-2 transition-all ${
                     soundType === 'clap'
