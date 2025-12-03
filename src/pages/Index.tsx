@@ -1,13 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
+import PaymentDialog from '@/components/PaymentDialog';
+import JournalDialog from '@/components/JournalDialog';
+import SessionTab from '@/components/SessionTab';
+import JournalTab from '@/components/JournalTab';
 
 type SoundType = 'click' | 'pulse' | 'clap';
 
@@ -209,141 +208,28 @@ const Index = () => {
 
   if (!hasSubscription) {
     return (
-      <Dialog open={showPaymentDialog} onOpenChange={() => {}}>
-        <DialogContent className="max-w-md" onPointerDownOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-center">💎 Подписка EMDR</DialogTitle>
-            <DialogDescription className="text-center text-base">
-              Для использования приложения необходима подписка
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-6 py-4">
-            <div className="text-center p-6 bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg">
-              <div className="text-4xl font-bold text-purple-600 mb-2">200 ₽</div>
-              <div className="text-sm text-muted-foreground">в месяц</div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <Icon name="Check" size={20} className="text-purple-500 mt-1" />
-                <span className="text-sm">Неограниченные EMDR сессии</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <Icon name="Check" size={20} className="text-purple-500 mt-1" />
-                <span className="text-sm">Дневник ощущений</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <Icon name="Check" size={20} className="text-purple-500 mt-1" />
-                <span className="text-sm">История и статистика</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <Icon name="Check" size={20} className="text-purple-500 mt-1" />
-                <span className="text-sm">Персональные заметки</span>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <Label htmlFor="card">Номер карты</Label>
-              <Input
-                id="card"
-                placeholder="0000 0000 0000 0000"
-                value={cardNumber}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\s/g, '').replace(/\D/g, '');
-                  const formatted = value.match(/.{1,4}/g)?.join(' ') || value;
-                  setCardNumber(formatted);
-                }}
-                maxLength={19}
-                className="text-center text-lg"
-              />
-            </div>
-
-            <Button
-              onClick={handlePayment}
-              className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
-              size="lg"
-              disabled={cardNumber.replace(/\s/g, '').length !== 16}
-            >
-              Оформить подписку
-            </Button>
-
-            <p className="text-xs text-center text-muted-foreground">
-              Автоматическое списание 200₽ каждый месяц. Отмена в любое время.
-            </p>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <PaymentDialog
+        showPaymentDialog={showPaymentDialog}
+        cardNumber={cardNumber}
+        setCardNumber={setCardNumber}
+        handlePayment={handlePayment}
+      />
     );
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-purple-50">
-      <Dialog open={showJournalDialog} onOpenChange={setShowJournalDialog}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>📝 Дневник ощущений</DialogTitle>
-            <DialogDescription>
-              Запишите свои наблюдения до и после сессии
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div>
-              <Label htmlFor="before" className="mb-2 block">
-                Ощущения перед сессией
-              </Label>
-              <p className="text-xs text-muted-foreground mb-2">
-                Что вы испытываете? Где? С чем это связано? (тревога в груди, паника в теле?)
-              </p>
-              <Textarea
-                id="before"
-                value={beforeSessionText}
-                onChange={(e) => setBeforeSessionText(e.target.value)}
-                placeholder="Опишите ваши ощущения..."
-                rows={4}
-              />
-            </div>
-
-            <div className="p-3 bg-purple-50 rounded-lg text-center">
-              <div className="text-sm text-muted-foreground">Длительность сессии</div>
-              <div className="text-xl font-bold text-purple-600">
-                {formatTime(sessionHistory[0]?.duration || 0)}
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="after" className="mb-2 block">
-                Ощущения после сессии
-              </Label>
-              <p className="text-xs text-muted-foreground mb-2">
-                Что вы испытываете теперь? Что изменилось?
-              </p>
-              <Textarea
-                id="after"
-                value={afterSessionText}
-                onChange={(e) => setAfterSessionText(e.target.value)}
-                placeholder="Опишите ваши ощущения..."
-                rows={4}
-              />
-            </div>
-
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowJournalDialog(false)}
-                className="flex-1"
-              >
-                Пропустить
-              </Button>
-              <Button
-                onClick={saveJournalEntry}
-                className="flex-1 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
-              >
-                Сохранить
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <JournalDialog
+        showJournalDialog={showJournalDialog}
+        setShowJournalDialog={setShowJournalDialog}
+        beforeSessionText={beforeSessionText}
+        setBeforeSessionText={setBeforeSessionText}
+        afterSessionText={afterSessionText}
+        setAfterSessionText={setAfterSessionText}
+        sessionDuration={sessionHistory[0]?.duration || 0}
+        formatTime={formatTime}
+        saveJournalEntry={saveJournalEntry}
+      />
 
       <div className="container max-w-md mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -431,66 +317,26 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="session" className="space-y-6 animate-fade-in">
-            <Card className="p-6 backdrop-blur-sm bg-white/80 border-purple-100">
-              <div className="space-y-6">
-                <div className="text-center">
-                  <div className="text-2xl font-semibold mb-2">
-                    {isPlaying ? '🎯 Сессия активна' : '⏸️ Готовы начать?'}
-                  </div>
-                  <div className="text-3xl font-bold text-purple-600">
-                    {formatTime(sessionDuration)}
-                  </div>
-                </div>
+            <SessionTab
+              isPlaying={isPlaying}
+              sessionDuration={sessionDuration}
+              formatTime={formatTime}
+              dotPosition={dotPosition}
+              togglePlayPause={togglePlayPause}
+              bpm={bpm}
+              setBpm={setBpm}
+            />
+          </TabsContent>
 
-                <div className="relative h-32 bg-gradient-to-r from-purple-100 via-blue-100 to-purple-100 rounded-lg overflow-hidden">
-                  <div 
-                    className="absolute top-1/2 -translate-y-1/2 w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full shadow-lg transition-all duration-100"
-                    style={{ left: `calc(${dotPosition}% - 16px)` }}
-                  >
-                    <div className="absolute inset-0 bg-white rounded-full animate-ping opacity-50"></div>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-center gap-4">
-                  <Button
-                    onClick={togglePlayPause}
-                    size="lg"
-                    className={`${
-                      isPlaying 
-                        ? 'bg-red-500 hover:bg-red-600' 
-                        : 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600'
-                    } px-8`}
-                  >
-                    {isPlaying ? (
-                      <>
-                        <Icon name="Pause" size={20} className="mr-2" />
-                        Стоп
-                      </>
-                    ) : (
-                      <>
-                        <Icon name="Play" size={20} className="mr-2" />
-                        Старт
-                      </>
-                    )}
-                  </Button>
-                </div>
-
-                <div className="pt-4 border-t">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium">Скорость</span>
-                    <span className="text-sm font-bold text-purple-600">{bpm} BPM</span>
-                  </div>
-                  <Slider
-                    value={[bpm]}
-                    onValueChange={(value) => setBpm(value[0])}
-                    min={60}
-                    max={200}
-                    step={5}
-                    className="mb-4"
-                  />
-                </div>
-              </div>
-            </Card>
+          <TabsContent value="journal" className="space-y-4 animate-fade-in">
+            <JournalTab
+              journalEntries={journalEntries}
+              notes={notes}
+              newNoteText={newNoteText}
+              setNewNoteText={setNewNoteText}
+              addNote={addNote}
+              formatTime={formatTime}
+            />
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6 animate-fade-in">
@@ -588,94 +434,6 @@ const Index = () => {
                   ⚠️ Это приложение не заменяет работу с квалифицированным терапевтом при серьёзных травмах.
                 </p>
               </div>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="journal" className="space-y-4 animate-fade-in">
-            <Card className="p-6 backdrop-blur-sm bg-white/80 border-purple-100">
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <Icon name="BookOpen" size={24} />
-                Дневник ощущений
-              </h2>
-
-              {journalEntries.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="text-4xl mb-4">📔</div>
-                  <p className="text-muted-foreground">Дневник пока пуст</p>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Завершите сессию, чтобы добавить запись
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {journalEntries.map((entry) => (
-                    <div
-                      key={entry.id}
-                      className="p-4 rounded-lg border border-purple-100 bg-purple-50/30 space-y-3"
-                    >
-                      <div className="flex items-center justify-between text-sm text-muted-foreground">
-                        <span>{entry.date}</span>
-                        <span>{entry.time}</span>
-                      </div>
-                      
-                      {entry.beforeSession && (
-                        <div>
-                          <div className="text-xs font-medium text-purple-600 mb-1">До сессии:</div>
-                          <p className="text-sm">{entry.beforeSession}</p>
-                        </div>
-                      )}
-
-                      <div className="text-center py-2 bg-blue-50 rounded text-sm">
-                        ⏱️ {formatTime(entry.sessionDuration)}
-                      </div>
-
-                      {entry.afterSession && (
-                        <div>
-                          <div className="text-xs font-medium text-blue-600 mb-1">После сессии:</div>
-                          <p className="text-sm">{entry.afterSession}</p>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Card>
-
-            <Card className="p-6 backdrop-blur-sm bg-white/80 border-blue-100">
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <Icon name="StickyNote" size={24} />
-                Заметки
-              </h2>
-
-              <div className="space-y-3 mb-4">
-                <Textarea
-                  value={newNoteText}
-                  onChange={(e) => setNewNoteText(e.target.value)}
-                  placeholder="Что вы хотите проработать? Какую ситуацию или переживание..."
-                  rows={3}
-                />
-                <Button
-                  onClick={addNote}
-                  className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
-                >
-                  <Icon name="Plus" size={20} className="mr-2" />
-                  Добавить заметку
-                </Button>
-              </div>
-
-              {notes.length > 0 && (
-                <div className="space-y-2 pt-4 border-t">
-                  {notes.map((note) => (
-                    <div
-                      key={note.id}
-                      className="p-3 rounded-lg bg-blue-50/50 border border-blue-100"
-                    >
-                      <div className="text-xs text-muted-foreground mb-1">{note.date}</div>
-                      <p className="text-sm">{note.content}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
             </Card>
           </TabsContent>
 
