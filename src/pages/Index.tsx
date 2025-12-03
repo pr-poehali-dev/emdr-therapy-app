@@ -74,17 +74,25 @@ const Index = () => {
       }
       
       setSessionDuration(0);
+      setDotPosition(50);
+      setDotDirection(1);
     } else {
       const interval = 60000 / bpm;
+      let currentDirection = 1;
       
       intervalRef.current = setInterval(() => {
         setDotPosition(prev => {
-          const newPos = prev + dotDirection * 2;
-          if (newPos >= 100 || newPos <= 0) {
-            setDotDirection(d => -d);
+          const newPos = prev + currentDirection * 2;
+          if (newPos >= 100) {
+            currentDirection = -1;
             playSound(soundType);
+            return 100;
+          } else if (newPos <= 0) {
+            currentDirection = 1;
+            playSound(soundType);
+            return 0;
           }
-          return Math.max(0, Math.min(100, newPos));
+          return newPos;
         });
       }, interval / 50);
 
