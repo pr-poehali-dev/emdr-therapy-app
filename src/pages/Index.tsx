@@ -5,10 +5,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import PaymentDialog from '@/components/PaymentDialog';
 import JournalDialog from '@/components/JournalDialog';
+import BeforeSessionDialog from '@/components/BeforeSessionDialog';
 import SessionTab from '@/components/SessionTab';
 import JournalTab from '@/components/JournalTab';
 
-type SoundType = 'click' | 'pulse' | 'clap';
+type SoundType = 'click' | 'pulse' | 'clap' | 'bell' | 'chime' | 'drum' | 'marimba' | 'wave' | 'beep' | 'tick';
 
 interface JournalEntry {
   id: string;
@@ -41,9 +42,12 @@ const Index = () => {
   const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
   const [showJournalDialog, setShowJournalDialog] = useState(false);
+  const [showBeforeDialog, setShowBeforeDialog] = useState(false);
   const [beforeSessionText, setBeforeSessionText] = useState('');
   const [afterSessionText, setAfterSessionText] = useState('');
   const [newNoteText, setNewNoteText] = useState('');
+  const [showVisualStimulation, setShowVisualStimulation] = useState(true);
+  const [tempBeforeText, setTempBeforeText] = useState('');
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -87,6 +91,60 @@ const Index = () => {
         gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
         oscillator.start(ctx.currentTime);
         oscillator.stop(ctx.currentTime + 0.08);
+        break;
+      case 'bell':
+        oscillator.frequency.value = 880;
+        gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+        oscillator.start(ctx.currentTime);
+        oscillator.stop(ctx.currentTime + 0.3);
+        break;
+      case 'chime':
+        oscillator.type = 'sine';
+        oscillator.frequency.value = 1320;
+        gainNode.gain.setValueAtTime(0.25, ctx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+        oscillator.start(ctx.currentTime);
+        oscillator.stop(ctx.currentTime + 0.4);
+        break;
+      case 'drum':
+        oscillator.type = 'triangle';
+        oscillator.frequency.value = 80;
+        gainNode.gain.setValueAtTime(0.4, ctx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+        oscillator.start(ctx.currentTime);
+        oscillator.stop(ctx.currentTime + 0.15);
+        break;
+      case 'marimba':
+        oscillator.type = 'sine';
+        oscillator.frequency.value = 660;
+        gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+        oscillator.start(ctx.currentTime);
+        oscillator.stop(ctx.currentTime + 0.25);
+        break;
+      case 'wave':
+        oscillator.type = 'sine';
+        oscillator.frequency.value = 220;
+        gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+        oscillator.start(ctx.currentTime);
+        oscillator.stop(ctx.currentTime + 0.5);
+        break;
+      case 'beep':
+        oscillator.type = 'square';
+        oscillator.frequency.value = 800;
+        gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.06);
+        oscillator.start(ctx.currentTime);
+        oscillator.stop(ctx.currentTime + 0.06);
+        break;
+      case 'tick':
+        oscillator.frequency.value = 1500;
+        gainNode.gain.setValueAtTime(0.15, ctx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.03);
+        oscillator.start(ctx.currentTime);
+        oscillator.stop(ctx.currentTime + 0.03);
         break;
     }
   };
@@ -132,6 +190,7 @@ const Index = () => {
           bpm: bpm
         };
         setSessionHistory(prev => [newSession, ...prev].slice(0, 10));
+        setBeforeSessionText(tempBeforeText);
         setShowJournalDialog(true);
       }
       
@@ -169,10 +228,20 @@ const Index = () => {
         afterSession: afterSessionText
       };
       setJournalEntries(prev => [entry, ...prev]);
-      setBeforeSessionText('');
-      setAfterSessionText('');
-      setShowJournalDialog(false);
     }
+    setBeforeSessionText('');
+    setAfterSessionText('');
+    setTempBeforeText('');
+    setShowJournalDialog(false);
+  };
+
+  const openBeforeDialog = () => {
+    setShowBeforeDialog(true);
+  };
+
+  const saveBeforeSession = (text: string) => {
+    setTempBeforeText(text);
+    setShowBeforeDialog(false);
   };
 
   const addNote = () => {
@@ -219,6 +288,13 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-purple-50">
+      <BeforeSessionDialog
+        showBeforeDialog={showBeforeDialog}
+        setShowBeforeDialog={setShowBeforeDialog}
+        tempBeforeText={tempBeforeText}
+        saveBeforeSession={saveBeforeSession}
+      />
+
       <JournalDialog
         showJournalDialog={showJournalDialog}
         setShowJournalDialog={setShowJournalDialog}
@@ -325,6 +401,10 @@ const Index = () => {
               togglePlayPause={togglePlayPause}
               bpm={bpm}
               setBpm={setBpm}
+              showVisualStimulation={showVisualStimulation}
+              setShowVisualStimulation={setShowVisualStimulation}
+              openBeforeDialog={openBeforeDialog}
+              hasBeforeText={!!tempBeforeText}
             />
           </TabsContent>
 
@@ -347,74 +427,42 @@ const Index = () => {
               </h2>
               
               <div className="space-y-3">
-                <button
-                  onClick={() => {
-                    setSoundType('click');
-                    playSound('click', true);
-                  }}
-                  className={`w-full p-4 rounded-lg border-2 transition-all ${
-                    soundType === 'click'
-                      ? 'border-purple-500 bg-purple-50'
-                      : 'border-gray-200 hover:border-purple-300'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="text-2xl">🔔</div>
-                      <div className="text-left">
-                        <div className="font-medium">Клик</div>
-                        <div className="text-sm text-muted-foreground">Короткий щелчок</div>
+                {[
+                  { type: 'click' as SoundType, emoji: '🔔', name: 'Клик', desc: 'Короткий щелчок' },
+                  { type: 'pulse' as SoundType, emoji: '🎵', name: 'Пульс', desc: 'Мягкий тон' },
+                  { type: 'clap' as SoundType, emoji: '👏', name: 'Хлопок', desc: 'Резкий звук' },
+                  { type: 'bell' as SoundType, emoji: '🔔', name: 'Колокольчик', desc: 'Звонкий тон' },
+                  { type: 'chime' as SoundType, emoji: '🎐', name: 'Перезвон', desc: 'Высокий звон' },
+                  { type: 'drum' as SoundType, emoji: '🥁', name: 'Барабан', desc: 'Глубокий удар' },
+                  { type: 'marimba' as SoundType, emoji: '🎶', name: 'Маримба', desc: 'Мелодичный звук' },
+                  { type: 'wave' as SoundType, emoji: '🌊', name: 'Волна', desc: 'Мягкая волна' },
+                  { type: 'beep' as SoundType, emoji: '📟', name: 'Бип', desc: 'Электронный сигнал' },
+                  { type: 'tick' as SoundType, emoji: '⏱️', name: 'Тик', desc: 'Короткий тик' }
+                ].map((sound) => (
+                  <button
+                    key={sound.type}
+                    onClick={() => {
+                      setSoundType(sound.type);
+                      playSound(sound.type, true);
+                    }}
+                    className={`w-full p-4 rounded-lg border-2 transition-all ${
+                      soundType === sound.type
+                        ? 'border-purple-500 bg-purple-50'
+                        : 'border-gray-200 hover:border-purple-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="text-2xl">{sound.emoji}</div>
+                        <div className="text-left">
+                          <div className="font-medium">{sound.name}</div>
+                          <div className="text-sm text-muted-foreground">{sound.desc}</div>
+                        </div>
                       </div>
+                      {soundType === sound.type && <Icon name="Check" size={20} className="text-purple-500" />}
                     </div>
-                    {soundType === 'click' && <Icon name="Check" size={20} className="text-purple-500" />}
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => {
-                    setSoundType('pulse');
-                    playSound('pulse', true);
-                  }}
-                  className={`w-full p-4 rounded-lg border-2 transition-all ${
-                    soundType === 'pulse'
-                      ? 'border-purple-500 bg-purple-50'
-                      : 'border-gray-200 hover:border-purple-300'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="text-2xl">🎵</div>
-                      <div className="text-left">
-                        <div className="font-medium">Пульс</div>
-                        <div className="text-sm text-muted-foreground">Мягкий тон</div>
-                      </div>
-                    </div>
-                    {soundType === 'pulse' && <Icon name="Check" size={20} className="text-purple-500" />}
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => {
-                    setSoundType('clap');
-                    playSound('clap', true);
-                  }}
-                  className={`w-full p-4 rounded-lg border-2 transition-all ${
-                    soundType === 'clap'
-                      ? 'border-purple-500 bg-purple-50'
-                      : 'border-gray-200 hover:border-purple-300'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="text-2xl">👏</div>
-                      <div className="text-left">
-                        <div className="font-medium">Хлопок</div>
-                        <div className="text-sm text-muted-foreground">Резкий звук</div>
-                      </div>
-                    </div>
-                    {soundType === 'clap' && <Icon name="Check" size={20} className="text-purple-500" />}
-                  </div>
-                </button>
+                  </button>
+                ))}
               </div>
             </Card>
 

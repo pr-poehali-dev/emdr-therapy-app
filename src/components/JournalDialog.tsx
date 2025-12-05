@@ -32,7 +32,7 @@ const JournalDialog = ({
         <DialogHeader>
           <DialogTitle>📝 Дневник ощущений</DialogTitle>
           <DialogDescription>
-            Запишите свои наблюдения до и после сессии
+            Сессия завершена! Запишите свои наблюдения
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
@@ -41,7 +41,7 @@ const JournalDialog = ({
               Ощущения перед сессией
             </Label>
             <p className="text-xs text-muted-foreground mb-2">
-              Что вы испытываете? Где? С чем это связано? (тревога в груди, паника в теле?)
+              {beforeSessionText ? 'Вы записали:' : 'Что вы испытывали перед сессией?'}
             </p>
             <Textarea
               id="before"
@@ -49,6 +49,8 @@ const JournalDialog = ({
               onChange={(e) => setBeforeSessionText(e.target.value)}
               placeholder="Опишите ваши ощущения..."
               rows={4}
+              disabled={!!beforeSessionText}
+              className={beforeSessionText ? 'bg-purple-50' : ''}
             />
           </div>
 
