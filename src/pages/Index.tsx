@@ -1,6 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import PaymentDialog from '@/components/PaymentDialog';
@@ -8,6 +6,9 @@ import JournalDialog from '@/components/JournalDialog';
 import BeforeSessionDialog from '@/components/BeforeSessionDialog';
 import SessionTab from '@/components/SessionTab';
 import JournalTab from '@/components/JournalTab';
+import HomeTab from '@/components/HomeTab';
+import SettingsTab from '@/components/SettingsTab';
+import HistoryTab from '@/components/HistoryTab';
 
 type SoundType = 'click' | 'pulse' | 'clap' | 'bell' | 'chime' | 'drum' | 'marimba' | 'wave' | 'beep' | 'tick';
 
@@ -332,64 +333,8 @@ const Index = () => {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="home" className="space-y-6 animate-fade-in">
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                EMDR Терапия
-              </h1>
-              <p className="text-muted-foreground">Самостоятельная практика движения глаз</p>
-            </div>
-
-            <Card className="p-8 backdrop-blur-sm bg-white/80 border-purple-100">
-              <div className="space-y-6">
-                <div className="text-center">
-                  <div className="text-6xl mb-4">🧘‍♀️</div>
-                  <h2 className="text-2xl font-semibold mb-2">Добро пожаловать</h2>
-                  <p className="text-sm text-muted-foreground">
-                    EMDR (Десенсибилизация и переработка движением глаз) — это метод психотерапии для работы с травматическими воспоминаниями
-                  </p>
-                </div>
-
-                <div className="pt-4 space-y-4">
-                  <div className="flex items-start gap-3">
-                    <div className="mt-1">
-                      <Icon name="Check" size={20} className="text-purple-500" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium">Безопасно</h3>
-                      <p className="text-sm text-muted-foreground">Практика в комфортном темпе</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="mt-1">
-                      <Icon name="Clock" size={20} className="text-blue-500" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium">Контроль времени</h3>
-                      <p className="text-sm text-muted-foreground">Встроенный таймер сессий</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="mt-1">
-                      <Icon name="BarChart" size={20} className="text-purple-500" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium">История</h3>
-                      <p className="text-sm text-muted-foreground">Отслеживание прогресса</p>
-                    </div>
-                  </div>
-                </div>
-
-                <Button 
-                  onClick={() => setActiveTab('session')} 
-                  className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
-                  size="lg"
-                >
-                  Начать сессию
-                  <Icon name="ArrowRight" size={20} className="ml-2" />
-                </Button>
-              </div>
-            </Card>
+          <TabsContent value="home">
+            <HomeTab setActiveTab={setActiveTab} />
           </TabsContent>
 
           <TabsContent value="session" className="space-y-6 animate-fade-in">
@@ -419,128 +364,19 @@ const Index = () => {
             />
           </TabsContent>
 
-          <TabsContent value="settings" className="space-y-6 animate-fade-in">
-            <Card className="p-6 backdrop-blur-sm bg-white/80 border-purple-100">
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <Icon name="Volume2" size={24} />
-                Звуковая стимуляция
-              </h2>
-              
-              <div className="space-y-3">
-                {[
-                  { type: 'click' as SoundType, emoji: '🔔', name: 'Клик', desc: 'Короткий щелчок' },
-                  { type: 'pulse' as SoundType, emoji: '🎵', name: 'Пульс', desc: 'Мягкий тон' },
-                  { type: 'clap' as SoundType, emoji: '👏', name: 'Хлопок', desc: 'Резкий звук' },
-                  { type: 'bell' as SoundType, emoji: '🔔', name: 'Колокольчик', desc: 'Звонкий тон' },
-                  { type: 'chime' as SoundType, emoji: '🎐', name: 'Перезвон', desc: 'Высокий звон' },
-                  { type: 'drum' as SoundType, emoji: '🥁', name: 'Барабан', desc: 'Глубокий удар' },
-                  { type: 'marimba' as SoundType, emoji: '🎶', name: 'Маримба', desc: 'Мелодичный звук' },
-                  { type: 'wave' as SoundType, emoji: '🌊', name: 'Волна', desc: 'Мягкая волна' },
-                  { type: 'beep' as SoundType, emoji: '📟', name: 'Бип', desc: 'Электронный сигнал' },
-                  { type: 'tick' as SoundType, emoji: '⏱️', name: 'Тик', desc: 'Короткий тик' }
-                ].map((sound) => (
-                  <button
-                    key={sound.type}
-                    onClick={() => {
-                      setSoundType(sound.type);
-                      playSound(sound.type, true);
-                    }}
-                    className={`w-full p-4 rounded-lg border-2 transition-all ${
-                      soundType === sound.type
-                        ? 'border-purple-500 bg-purple-50'
-                        : 'border-gray-200 hover:border-purple-300'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="text-2xl">{sound.emoji}</div>
-                        <div className="text-left">
-                          <div className="font-medium">{sound.name}</div>
-                          <div className="text-sm text-muted-foreground">{sound.desc}</div>
-                        </div>
-                      </div>
-                      {soundType === sound.type && <Icon name="Check" size={20} className="text-purple-500" />}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </Card>
-
-            <Card className="p-6 backdrop-blur-sm bg-white/80 border-blue-100">
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <Icon name="Info" size={24} />
-                О методе EMDR
-              </h2>
-              <div className="space-y-3 text-sm text-muted-foreground">
-                <p>
-                  Метод разработан Франсин Шапиро в 1987 году для работы с посттравматическим стрессом.
-                </p>
-                <p>
-                  Билатеральная стимуляция (движение глаз, звуки) помогает переработать травматические воспоминания.
-                </p>
-                <p className="text-yellow-700 bg-yellow-50 p-3 rounded-lg">
-                  ⚠️ Это приложение не заменяет работу с квалифицированным терапевтом при серьёзных травмах.
-                </p>
-              </div>
-            </Card>
+          <TabsContent value="settings">
+            <SettingsTab
+              soundType={soundType}
+              setSoundType={setSoundType}
+              playSound={playSound}
+            />
           </TabsContent>
 
-          <TabsContent value="history" className="space-y-4 animate-fade-in">
-            <Card className="p-6 backdrop-blur-sm bg-white/80 border-purple-100">
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <Icon name="Calendar" size={24} />
-                История сессий
-              </h2>
-
-              {sessionHistory.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="text-4xl mb-4">📊</div>
-                  <p className="text-muted-foreground">
-                    Пока нет завершённых сессий
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Начните первую сессию, чтобы увидеть статистику
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {sessionHistory.map((session, index) => (
-                    <div
-                      key={index}
-                      className="p-4 rounded-lg border border-purple-100 bg-purple-50/50 hover:bg-purple-50 transition-colors"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="font-medium">{session.date}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {formatTime(session.duration)} • {session.bpm} BPM
-                          </div>
-                        </div>
-                        <div className="text-2xl">✅</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {sessionHistory.length > 0 && (
-                <div className="mt-6 pt-6 border-t">
-                  <h3 className="font-medium mb-3">Статистика</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center p-4 rounded-lg bg-blue-50">
-                      <div className="text-2xl font-bold text-blue-600">{sessionHistory.length}</div>
-                      <div className="text-sm text-muted-foreground">Всего сессий</div>
-                    </div>
-                    <div className="text-center p-4 rounded-lg bg-purple-50">
-                      <div className="text-2xl font-bold text-purple-600">
-                        {formatTime(sessionHistory.reduce((acc, s) => acc + s.duration, 0))}
-                      </div>
-                      <div className="text-sm text-muted-foreground">Общее время</div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </Card>
+          <TabsContent value="history">
+            <HistoryTab
+              sessionHistory={sessionHistory}
+              formatTime={formatTime}
+            />
           </TabsContent>
         </Tabs>
       </div>
